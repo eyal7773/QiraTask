@@ -22,13 +22,13 @@ namespace WebApplication1.Controllers
         [HttpGet]
         public IEnumerable<Invoice> Get()
         {
-            return _repo.ReadAll();
+            return _repo.GetAll();
         }
 
         [HttpGet("{id}")]
         public Invoice Get(int id)
         {
-            return _repo.ReadById(id);
+            return _repo.GetById(id);
         }
 
         [HttpPost]
@@ -38,13 +38,13 @@ namespace WebApplication1.Controllers
      
         }
 
-        // PUT api/<InvoicesController>/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public void Put(int id, [FromBody] Invoice invoice)
         {
+            _repo.Update(invoice,id);
         }
+        
 
-        // DELETE api/<InvoicesController>/5
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
