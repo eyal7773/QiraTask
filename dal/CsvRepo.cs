@@ -25,8 +25,9 @@ namespace Dal
             _classMap = classMap;
             _csvConfig = new CsvConfiguration(CultureInfo.CurrentCulture)
             {
-                HasHeaderRecord = false, Delimiter = ";"
-                
+                HasHeaderRecord = false, 
+                Delimiter = ";",
+                MissingFieldFound = null    ,
             };
 
         }
@@ -66,11 +67,20 @@ namespace Dal
 
         public void Add(T record)
         {
+
+            //using (var stream = File.Open(_fileFullPath, FileMode.Append))
+            //using (var writer = new StreamWriter(stream))
+            //using (var csv = new CsvWriter(writer, _csvConfig))
+            //{
+            //    csv.Context.RegisterClassMap(_classMap);
+            //    csv.WriteRecord(records);
+            //}
+
             using (var writer = new StreamWriter(_fileFullPath, true))
             using (var csv = new CsvWriter(writer, _csvConfig))
             {
                 csv.Context.RegisterClassMap(_classMap);
-                
+                csv.NextRecord(); 
                 csv.WriteRecord(record);
             }
         }
