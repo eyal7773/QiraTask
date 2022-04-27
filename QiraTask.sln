@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32414.318
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApplication1", "WebApplication1\WebApplication1.csproj", "{8EECF15B-EABB-437F-8BC2-C03CF3311B4C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApi", "WebApplication1\WebApi.csproj", "{8EECF15B-EABB-437F-8BC2-C03CF3311B4C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dal", "dal\Dal.csproj", "{05E43D6E-AC63-481E-B6BA-5E83133C970F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dal", "dal\Dal.csproj", "{05E43D6E-AC63-481E-B6BA-5E83133C970F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Models", "models\Models.csproj", "{620D2C91-1F03-443D-9485-1E7F298EE0FA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Models", "models\Models.csproj", "{620D2C91-1F03-443D-9485-1E7F298EE0FA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

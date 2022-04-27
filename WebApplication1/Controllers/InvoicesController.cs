@@ -3,8 +3,8 @@ using Dal.Maps;
 using Microsoft.AspNetCore.Mvc;
 using Models;
 using System.Collections.Generic;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+using WebApi.DTO;
+using WebApi.DTO.Extensions;
 
 namespace WebApplication1.Controllers
 {
@@ -18,11 +18,26 @@ namespace WebApplication1.Controllers
         {
             _repo = repo;
         }
-        
+
+        /// <summary>
+        /// Get all invoices, paginated, sorted.
+        /// </summary>
+        /// <remarks>
+        /// `sort` string example: "Id desc" - means sort by Id descending.
+        /// `filterColumn` + `filterTerm` - used to filter, for example: `filterColumn`='Amount' and `filterTerm`='100' - means filter by Amount=100.
+        /// </remarks>
+        /// <param name="pageLength">how many records in each page</param>
+        /// <param name="startRecord">which record to start with</param>
+        /// <param name="sort">`sort` string example: "Id desc" - means sort by Id descending.</param>
+        /// <returns>Page object with list of records.</returns>
         [HttpGet]
-        public IEnumerable<Invoice> Get()
+        public DataWrapper<Invoice> Get([FromQuery] int pageLength = 10,
+                                        [FromQuery] int startRecord = 0,
+                                        [FromQuery] string sort = "",
+                                        [FromQuery] string filterColumn = "",
+                                        [FromQuery] string filterTerm = "")
         {
-            return _repo.GetAll();
+            return _repo.GetAll(pageLength, startRecord, sort,filterColumn,filterTerm);
         }
 
         [HttpGet("{id}")]
@@ -32,22 +47,24 @@ namespace WebApplication1.Controllers
         }
 
         [HttpPost]
-        public void Post([FromBody] Invoice invoice)
+        public void Post([FromBody] InvoiceParams invoiceToAdd)
         {
-            _repo.Add(invoice);
+            
+            _repo.Add(invoiceToAdd.ToInvoice());
      
         }
 
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] Invoice invoice)
+        public void Put(int id, [FromBody] InvoiceParams invoiceToChange)
         {
-            _repo.Update(invoice,id);
+            _repo.Update(invoiceToChange.ToInvoice(), id);
         }
         
 
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
-        }
+        // Not requested in spec.
+        //[HttpDelete("{id}")]
+        //public void Delete(int id)
+        //{
+        //}
     }
 }

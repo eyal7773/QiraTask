@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using CsvHelper;
 using CsvHelper.Configuration;
+using System.Linq.Dynamic.Core;
 
 namespace Dal
 {
@@ -13,8 +14,9 @@ namespace Dal
         private string _fileFullPath;
         private TMap _classMap;
         private CsvConfiguration _csvConfig;
-        // Next is prepration for case that we need to use different ID column for each instance of CsvRepo
+        // Next line is prepration for case that we need to use different ID column for each instance of CsvRepo
         private const string DEFAULT_ID_COLUMN = "Id";
+        private const int MAX_RECORDS_IN_ONE_QUERY = 500;
 
         public CsvRepo(string fileFullPath, TMap classMap)
         {
@@ -33,17 +35,35 @@ namespace Dal
             };
 
         }
-
-        public List<T> GetAll() 
+        private List<T> GetAllRecordsFromFile()
         {
             using var streamReader = File.OpenText(_fileFullPath);
             using var csvReader = new CsvReader(streamReader, _csvConfig);
             csvReader.Context.RegisterClassMap(_classMap);
 
             var records = new List<T>(csvReader.GetRecords<T>());
-
             return records;
+        }
 
+        // `sort` string example: "Id desc" - means sort by Id descending.
+        public DataWrapper<T> GetAll(int pageLength = 10,
+                                     int startRecord = 0,
+                                     string sort = "",
+                                     string filterColumn = "",
+                                     string filterTerm = "")
+        {
+            var records = GetAllRecordsFromFile();
+
+            if (filterTerm != "")
+            {
+                // Using DynamicLinq.
+                records = records.AsQueryable<T>().Where($"{filterColumn} == {filterTerm}").ToList();
+            }
+            
+            var skiped = SkipTakeAndOrder(pageLength, startRecord, records.AsQueryable(), sort);
+
+            var result = DataWrapper<T>.Create(records.Count(), skiped.Count(),skiped);
+            return result;
         }
 
         public T GetById(int id)
@@ -83,7 +103,7 @@ namespace Dal
             // And a better solution will be to update specific fields, which is not implemented here.
             // But I think, for this example, it's ok.
 
-            var records = GetAll();
+            var records = GetAllRecordsFromFile();
 
             // Find index is needed to get the object by ref from the list.
             // Otherwise, we can't swap the object with the new one.
@@ -106,5 +126,26 @@ namespace Dal
             }
         }
 
+        private IQueryable<T> SkipTakeAndOrder(int pageLength,
+                                             int startRecord,
+                                             IQueryable<T> set,
+                                             string sort = "")
+        {
+            
+            pageLength = (pageLength > MAX_RECORDS_IN_ONE_QUERY) ? MAX_RECORDS_IN_ONE_QUERY : pageLength;
+
+
+            if (sort == "")
+            {
+                set = set.Skip(startRecord).Take(pageLength);
+            }
+            else
+            {
+                // Using `Dynamic Linq`.
+                set = set.OrderBy(sort).Skip(startRecord).Take(pageLength).AsQueryable();
+            }
+
+            return set;
+        }        
     }
 }
