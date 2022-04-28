@@ -12,9 +12,9 @@ namespace WebApplication1.Controllers
     [ApiController]
     public class InvoicesController : ControllerBase
     {
-        private CsvRepo<Invoice, InvoiceMap> _repo;
+        private IRepo<Invoice> _repo;
 
-        public InvoicesController(CsvRepo<Invoice,InvoiceMap> repo)
+        public InvoicesController(IRepo<Invoice> repo)
         {
             _repo = repo;
         }

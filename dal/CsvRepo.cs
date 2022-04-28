@@ -9,32 +9,38 @@ using System.Linq.Dynamic.Core;
 
 namespace Dal
 {
-    public class CsvRepo<T, TMap> where TMap : ClassMap<T>
+    public class CsvRepo<T, TMap> : IRepo<T> where TMap : ClassMap<T>
     {
+        #region locals
         private string _fileFullPath;
         private TMap _classMap;
         private CsvConfiguration _csvConfig;
         // Next line is prepration for case that we need to use different ID column for each instance of CsvRepo
         private const string DEFAULT_ID_COLUMN = "Id";
         private const int MAX_RECORDS_IN_ONE_QUERY = 500;
+        #endregion
 
+        #region constructor
         public CsvRepo(string fileFullPath, TMap classMap)
         {
             if (!File.Exists(fileFullPath))
             {
-                throw new FileNotFoundException(null,fileFullPath);
+                throw new FileNotFoundException(null, fileFullPath);
             }
 
             _fileFullPath = fileFullPath;
             _classMap = classMap;
             _csvConfig = new CsvConfiguration(CultureInfo.CurrentCulture)
             {
-                HasHeaderRecord = false, 
+                HasHeaderRecord = false,
                 Delimiter = ";",
-                MissingFieldFound = null    ,
+                MissingFieldFound = null,
             };
 
         }
+        #endregion
+
+        #region private functions
         private List<T> GetAllRecordsFromFile()
         {
             using var streamReader = File.OpenText(_fileFullPath);
@@ -44,6 +50,30 @@ namespace Dal
             var records = new List<T>(csvReader.GetRecords<T>());
             return records;
         }
+        private IQueryable<T> SkipTakeAndOrder(int pageLength,
+                                             int startRecord,
+                                             IQueryable<T> set,
+                                             string sort = "")
+        {
+
+            pageLength = (pageLength > MAX_RECORDS_IN_ONE_QUERY) ? MAX_RECORDS_IN_ONE_QUERY : pageLength;
+
+
+            if (sort == "")
+            {
+                set = set.Skip(startRecord).Take(pageLength);
+            }
+            else
+            {
+                // Using `Dynamic Linq`.
+                set = set.OrderBy(sort).Skip(startRecord).Take(pageLength).AsQueryable();
+            }
+
+            return set;
+        }
+        #endregion
+
+        #region public functions
 
         // `sort` string example: "Id desc" - means sort by Id descending.
         public DataWrapper<T> GetAll(int pageLength = 10,
@@ -59,10 +89,10 @@ namespace Dal
                 // Using DynamicLinq.
                 records = records.AsQueryable<T>().Where($"{filterColumn} == {filterTerm}").ToList();
             }
-            
+
             var skiped = SkipTakeAndOrder(pageLength, startRecord, records.AsQueryable(), sort);
 
-            var result = DataWrapper<T>.Create(records.Count(), skiped.Count(),skiped);
+            var result = DataWrapper<T>.Create(records.Count(), skiped.Count(), skiped);
             return result;
         }
 
@@ -92,7 +122,7 @@ namespace Dal
             using (var csv = new CsvWriter(writer, _csvConfig))
             {
                 csv.Context.RegisterClassMap(_classMap);
-                csv.NextRecord(); 
+                csv.NextRecord();
                 csv.WriteRecord(record);
             }
         }
@@ -108,7 +138,7 @@ namespace Dal
             // Find index is needed to get the object by ref from the list.
             // Otherwise, we can't swap the object with the new one.
             var index = records.FindIndex(r => r.GetType().GetProperty(DEFAULT_ID_COLUMN).GetValue(r).ToString() == id.ToString());
-            
+
             if (index > -1)
             {
                 // Swap the object with the new one.
@@ -125,27 +155,7 @@ namespace Dal
                 throw new Exception("No record found");
             }
         }
+        #endregion
 
-        private IQueryable<T> SkipTakeAndOrder(int pageLength,
-                                             int startRecord,
-                                             IQueryable<T> set,
-                                             string sort = "")
-        {
-            
-            pageLength = (pageLength > MAX_RECORDS_IN_ONE_QUERY) ? MAX_RECORDS_IN_ONE_QUERY : pageLength;
-
-
-            if (sort == "")
-            {
-                set = set.Skip(startRecord).Take(pageLength);
-            }
-            else
-            {
-                // Using `Dynamic Linq`.
-                set = set.OrderBy(sort).Skip(startRecord).Take(pageLength).AsQueryable();
-            }
-
-            return set;
-        }        
     }
 }

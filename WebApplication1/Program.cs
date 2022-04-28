@@ -17,10 +17,6 @@ namespace WebApplication1
     {
         public static void Main(string[] args)
         {
-            //var map = new InvoiceMap();
-            //var x = new CsvRepo<Invoice,InvoiceMap>($"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}Data{Path.DirectorySeparatorChar}Invoices.csv",map);
-            
-            //x.ReadAll().ForEach(x => Console.WriteLine($"{x.Id} {x.Status} {x.Amount} {x.PaymentMethod} {x.CreatedAt} {x.UpdatedAt}"));
             CreateHostBuilder(args).Build().Run();
         }
 
